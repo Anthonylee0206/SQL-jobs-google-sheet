@@ -257,25 +257,25 @@ WHERE js.subsystem = 'TSQL'
   AND t.table_name <> ''
 ORDER BY j.name, js.step_id, t.direction;
 
--- 3B：透過 SP 相依性反查，只撈 Job 有呼叫到的 SP 的相依性
+-- 3B：SP 關聯資料表摘要 (每個 SP 一行，詳細明細見 Sheet 5)
 --     需在 Job 使用的資料庫下執行 (例如 USE cmd_data)
+--     需要 SQL Server 2017+ (STRING_AGG)
 SELECT
     DB_NAME()                           AS [Source Database],
     p.name                              AS [SP Name],
-    d.referenced_database_name          AS [Referenced Database],
-    ISNULL(d.referenced_schema_name, 'dbo') AS [Referenced Schema],
-    d.referenced_entity_name            AS [Referenced Table/Object],
-    CASE
-        WHEN ro.type_desc IS NOT NULL THEN ro.type_desc
-        ELSE 'UNKNOWN (cross-db)'
-    END                                 AS [Object Type]
+    COUNT(*)                            AS [Table Count],
+    STRING_AGG(d.referenced_entity_name, ', ')
+        WITHIN GROUP (ORDER BY d.referenced_entity_name)
+                                        AS [Referenced Tables],
+    '=HYPERLINK("#gid=SHEET5_GID","查看明細")'
+                                        AS [Detail Link (貼入 Sheet 後替換 gid)]
 FROM sys.procedures p
 INNER JOIN sys.sql_expression_dependencies d
     ON p.object_id = d.referencing_id
 LEFT JOIN sys.objects ro
     ON d.referenced_id = ro.object_id
 WHERE d.referenced_minor_id = 0          -- 只取物件層級，排除欄位層級相依
-  AND ro.type_desc = 'USER_TABLE'        -- 只保留資料表，排除 SP/函數等其他物件
+  AND ro.type_desc = 'USER_TABLE'        -- 只保留資料表
   AND p.name IN (
     -- 只撈 Job Step 裡有 EXEC 到的 SP
     SELECT DISTINCT
@@ -290,7 +290,8 @@ WHERE d.referenced_minor_id = 0          -- 只取物件層級，排除欄位層
     WHERE js.command LIKE '%EXEC %'
       AND js.subsystem = 'TSQL'
 )
-ORDER BY p.name, d.referenced_entity_name;
+GROUP BY p.name
+ORDER BY p.name;
 
 
 -- =====================================================================

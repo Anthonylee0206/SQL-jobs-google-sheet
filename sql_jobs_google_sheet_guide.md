@@ -6,9 +6,9 @@
 |-------|------|------|---------|
 | 1 | **Job 總覽** | Job 名稱、排程、啟用狀態 | msdb 系統表 |
 | 2 | **步驟明細** | 每個 Job 的 Step 內容與命令 | msdb.sysjobsteps |
-| 3 | **關聯資料表** | Step 引用的資料表 + SP 相依性 | command 解析 + sys.sql_expression_dependencies |
+| 3 | **關聯資料表** | 3A: Step 引用的表 / 3B: SP 關聯表**摘要** (每 SP 一行，含超連結至 Sheet 5) | command 解析 + sys.sql_expression_dependencies |
 | 4 | **使用的 SP** | EXEC 呼叫的 SP 名稱與定義 | sys.procedures + sys.sql_modules |
-| 5 | **SP 相依性** | SP 內部讀寫了哪些表、做什麼操作 | sys.sql_expression_dependencies |
+| 5 | **SP 相依性明細** | SP 讀寫了哪些表、操作類型 (Sheet 3B 的完整明細) | sys.sql_expression_dependencies |
 | 6 | **資源使用量 (Job)** | 30 天執行次數、成功率、平均/最大時長 | msdb.sysjobhistory |
 | 7 | **資源使用量 (Step)** | Step 層級耗時、失敗次數、錯誤訊息 | msdb.sysjobhistory |
 | 8 | **資料庫 I/O** | 相關 DB 的讀寫量、延遲、檔案大小 | sys.dm_io_virtual_file_stats |
@@ -37,6 +37,11 @@
 ### 3. 貼到 Google Sheet
 1. SSMS 執行查詢 → **Ctrl+A** → **Ctrl+C**
 2. Google Sheet 對應工作表 → **Ctrl+V**
+
+### 4. 設定 Sheet 3B → Sheet 5 超連結
+1. 先切到 Sheet 5，從瀏覽器網址列複製 `gid=` 後面的數字
+2. 回到 Sheet 3B 的 `Detail Link` 欄位，將公式中的 `SHEET5_GID` 替換為實際 gid
+3. 例如 Sheet 5 的 gid 是 `123456`，則公式為：`=HYPERLINK("#gid=123456","查看明細")`
 
 ---
 

@@ -34,17 +34,16 @@
 | ... | | | | | | | |
 ```
 
-### ← 空一行，然後貼 3B 結果 (每個 DB 各跑一次，全部接在下面)
+### ← 空一行，然後貼 3B 結果 (摘要表，每個 SP 一行)
 ```
-| Source Database | SP Name | Referenced Database | Referenced Schema | Referenced Table/Object | Object Type |
-|-----------------|---------|---------------------|-------------------|------------------------|-------------|
-| cmd_data | sp_move_data | cmd_data | dbo | sys_movelog_setting | USER_TABLE |
-| cmd_data | sp_move_data | NULL | dbo | provider_ticket_cmd | USER_TABLE |
-| cmd_data_log | (如果 log 庫有 SP 才會有資料) | | | | |
-| cmd_data_archive | (如果 archive 庫有 SP 才會有資料) | | | | |
+| Source Database | SP Name | Table Count | Referenced Tables | Detail Link |
+|-----------------|---------|-------------|-------------------|-------------|
+| cmd_data | sp_move_data | 5 | provider_ticket_cmd, provider_ticket_cmd_cashout_log, ... | =HYPERLINK("#gid=SHEET5_GID","查看明細") |
+| cmd_data | sp_archive_data | 3 | archive_log, archive_setting, ... | =HYPERLINK("#gid=SHEET5_GID","查看明細") |
 ```
 
-> **注意：3A 和 3B 欄位不同，分開貼就好，中間空一行區隔**
+> **注意：3B 為摘要表，每個 SP 只佔一行。點擊「查看明細」超連結可跳到 Sheet 5 看完整的表級操作明細。**
+> **設定超連結：先到 Sheet 5 複製網址中 `gid=` 後面的數字，替換掉 `SHEET5_GID`。**
 
 ---
 
@@ -58,12 +57,12 @@
 
 ---
 
-## 工作表 5：SP 相依性
+## 工作表 5：SP 相依性明細 (Sheet 3B 的完整明細)
 ```
 | Current Database | SP Name | Referenced Database | Referenced Schema | Referenced Table/Object | Object Type | Operation Type | SP Definition Preview |
 |------------------|---------|---------------------|-------------------|------------------------|-------------|----------------|-----------------------|
 | cmd_data | sp_move_data | cmd_data | dbo | sys_movelog_setting | USER_TABLE | SELECT | CREATE PROC... |
-| cmd_data | sp_move_data | NULL | dbo | sp_executesql | UNKNOWN (cross-db) | REFERENCE | CREATE PROC... |
+| cmd_data | sp_move_data | NULL | dbo | provider_ticket_cmd | USER_TABLE | DELETE | CREATE PROC... |
 ```
 > 同上，每個 DB 各跑一次，全部貼在一起
 
