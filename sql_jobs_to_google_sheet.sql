@@ -274,7 +274,8 @@ INNER JOIN sys.sql_expression_dependencies d
     ON p.object_id = d.referencing_id
 LEFT JOIN sys.objects ro
     ON d.referenced_id = ro.object_id
-WHERE p.name IN (
+WHERE d.referenced_minor_id = 0          -- 只取物件層級，排除欄位層級相依
+  AND p.name IN (
     -- 只撈 Job Step 裡有 EXEC 到的 SP
     SELECT DISTINCT
         LTRIM(RTRIM(
@@ -363,6 +364,7 @@ INNER JOIN sys.objects o ON d.referencing_id = o.object_id
 LEFT JOIN sys.sql_modules m ON d.referencing_id = m.object_id
 LEFT JOIN sys.objects ro ON d.referenced_id = ro.object_id
 WHERE o.type = 'P'
+  AND d.referenced_minor_id = 0          -- 只取物件層級，排除欄位層級相依
   AND o.name IN (
     -- 只撈 Job Step 裡有 EXEC 到的 SP
     SELECT DISTINCT
