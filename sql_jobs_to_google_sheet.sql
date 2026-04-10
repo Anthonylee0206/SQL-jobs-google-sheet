@@ -275,6 +275,7 @@ INNER JOIN sys.sql_expression_dependencies d
 LEFT JOIN sys.objects ro
     ON d.referenced_id = ro.object_id
 WHERE d.referenced_minor_id = 0          -- 只取物件層級，排除欄位層級相依
+  AND ro.type_desc = 'USER_TABLE'        -- 只保留資料表，排除 SP/函數等其他物件
   AND p.name IN (
     -- 只撈 Job Step 裡有 EXEC 到的 SP
     SELECT DISTINCT
@@ -365,6 +366,7 @@ LEFT JOIN sys.sql_modules m ON d.referencing_id = m.object_id
 LEFT JOIN sys.objects ro ON d.referenced_id = ro.object_id
 WHERE o.type = 'P'
   AND d.referenced_minor_id = 0          -- 只取物件層級，排除欄位層級相依
+  AND ro.type_desc = 'USER_TABLE'        -- 只保留資料表，排除 SP/函數等其他物件
   AND o.name IN (
     -- 只撈 Job Step 裡有 EXEC 到的 SP
     SELECT DISTINCT
