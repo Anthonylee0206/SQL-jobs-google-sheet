@@ -326,10 +326,19 @@ SELECT
     p.create_date                       AS [SP Created],
     p.modify_date                       AS [SP Last Modified],
     LEN(m.definition)                   AS [SP Definition Length],
-    -- SP 做什麼：摘要 (跳過開頭註解區塊，從 CREATE 開始取 500 字)
+    -- SP 做什麼：摘要 (跳過註解，從真正的 CREATE PROCEDURE 行開始取 500 字)
     SUBSTRING(
         m.definition,
-        ISNULL(NULLIF(PATINDEX('%CREATE%PROC%', m.definition), 0), 1),
+        CASE
+            -- 定義一開頭就是 CREATE
+            WHEN PATINDEX('CREATE%PROC%', m.definition) = 1 THEN 1
+            -- CREATE 出現在新行開頭 (排除註解中提到 CREATE PROC 的狀況)
+            WHEN PATINDEX('%' + CHAR(13) + CHAR(10) + 'CREATE%PROC%', m.definition) > 0
+                THEN PATINDEX('%' + CHAR(13) + CHAR(10) + 'CREATE%PROC%', m.definition) + 2
+            WHEN PATINDEX('%' + CHAR(10) + 'CREATE%PROC%', m.definition) > 0
+                THEN PATINDEX('%' + CHAR(10) + 'CREATE%PROC%', m.definition) + 1
+            ELSE 1
+        END,
         500
     )                                   AS [SP Definition Preview],
     -- 超連結至 Sheet 4B 的完整定義
@@ -406,10 +415,17 @@ SELECT
         WHEN m.definition LIKE '%TRUNCATE%'+ d.referenced_entity_name + '%' THEN 'TRUNCATE'
         ELSE 'REFERENCE'
     END                                 AS [Operation Type],
-    -- 跳過開頭註解區塊，從 CREATE 開始取 500 字
+    -- 跳過註解，從真正的 CREATE PROCEDURE 行開始取 500 字
     SUBSTRING(
         m.definition,
-        ISNULL(NULLIF(PATINDEX('%CREATE%PROC%', m.definition), 0), 1),
+        CASE
+            WHEN PATINDEX('CREATE%PROC%', m.definition) = 1 THEN 1
+            WHEN PATINDEX('%' + CHAR(13) + CHAR(10) + 'CREATE%PROC%', m.definition) > 0
+                THEN PATINDEX('%' + CHAR(13) + CHAR(10) + 'CREATE%PROC%', m.definition) + 2
+            WHEN PATINDEX('%' + CHAR(10) + 'CREATE%PROC%', m.definition) > 0
+                THEN PATINDEX('%' + CHAR(10) + 'CREATE%PROC%', m.definition) + 1
+            ELSE 1
+        END,
         500
     )                                   AS [SP Definition Preview]
 FROM sys.sql_expression_dependencies d
