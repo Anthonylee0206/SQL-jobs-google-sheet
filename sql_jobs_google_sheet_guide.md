@@ -39,9 +39,13 @@
 2. Google Sheet 對應工作表 → **Ctrl+V**
 
 ### 4. 設定 Sheet 3B → Sheet 5 超連結
-1. 先切到 Sheet 5，從瀏覽器網址列複製 `gid=` 後面的數字
-2. 回到 Sheet 3B 的 `Detail Link` 欄位，將公式中的 `SHEET5_GID` 替換為實際 gid
-3. 例如 Sheet 5 的 gid 是 `123456`，則公式為：`=HYPERLINK("#gid=123456","查看明細")`
+1. 先建好 Sheet 5（貼完資料），從瀏覽器網址列複製 `gid=` 後面的數字
+2. 回到 SSMS，打開 Sheet 3B 的查詢，把開頭的 `@Sheet5Gid` 變數值改成那個數字
+   ```sql
+   DECLARE @Sheet5Gid VARCHAR(20) = '1234567890';  -- 改這裡
+   ```
+3. 重新執行查詢 → Ctrl+A → Ctrl+C → 貼到 Sheet 3B
+4. Detail Link 欄位會直接是可用的超連結，點擊跳到 Sheet 5
 
 ---
 

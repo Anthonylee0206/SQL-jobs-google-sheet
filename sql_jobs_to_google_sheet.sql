@@ -260,6 +260,13 @@ ORDER BY j.name, js.step_id, t.direction;
 -- 3B：SP 關聯資料表摘要 (每個 SP 一行，詳細明細見 Sheet 5)
 --     需在 Job 使用的資料庫下執行 (例如 USE cmd_data)
 --     需要 SQL Server 2017+ (STRING_AGG)
+--
+-- ★ 使用前請先設定 Sheet 5 的 gid：
+--   1. 開啟 Google Sheet 並切到 Sheet 5
+--   2. 複製網址列 gid= 後面的數字
+--   3. 貼到下面的 @Sheet5Gid
+DECLARE @Sheet5Gid VARCHAR(20) = '0';   -- ← 改這裡：填入 Sheet 5 的 gid
+
 SELECT
     DB_NAME()                           AS [Source Database],
     p.name                              AS [SP Name],
@@ -267,8 +274,8 @@ SELECT
     STRING_AGG(d.referenced_entity_name, ', ')
         WITHIN GROUP (ORDER BY d.referenced_entity_name)
                                         AS [Referenced Tables],
-    '=HYPERLINK("#gid=SHEET5_GID","查看明細")'
-                                        AS [Detail Link (貼入 Sheet 後替換 gid)]
+    '=HYPERLINK("#gid=' + @Sheet5Gid + '","查看明細")'
+                                        AS [Detail Link]
 FROM sys.procedures p
 INNER JOIN sys.sql_expression_dependencies d
     ON p.object_id = d.referencing_id
