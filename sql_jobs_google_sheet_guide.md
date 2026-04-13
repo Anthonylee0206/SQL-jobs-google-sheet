@@ -60,6 +60,18 @@
 4. 執行 Sheet 4 → 貼到 Google Sheet
 5. Full Definition Link 欄位點擊就會跳到 Sheet 4B 的完整 SP 內容
 
+### 6. 美化 Sheet 4B：把 SP 完整定義轉成滑鼠 hover 註解
+Sheet 4B 的 SP Full Definition 欄位內容很長很醜。可以用 Apps Script 把它轉成 SP Name 欄的 Note，滑鼠 hover 才顯示。
+
+1. 把 SQL 結果貼到 Sheet 4B
+2. 上方選單 **擴充功能 → Apps Script**
+3. 貼上專案根目錄的 `apps_script_sp_definition_to_note.gs` 內容
+4. 修改第一行 `SHEET_NAME` 變數為你的 Sheet 4B 名稱
+5. 執行 `convertSPDefinitionToNote`
+6. 完成後 SP Name 欄會有 Note 標記，hover 看完整定義；SP Full Definition 欄已清空（可隱藏整欄）
+
+如需還原，執行 `restoreSPDefinitionFromNote`。
+
 ---
 
 ## 多環境管理
