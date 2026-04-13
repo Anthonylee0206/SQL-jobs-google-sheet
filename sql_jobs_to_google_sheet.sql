@@ -326,8 +326,12 @@ SELECT
     p.create_date                       AS [SP Created],
     p.modify_date                       AS [SP Last Modified],
     LEN(m.definition)                   AS [SP Definition Length],
-    -- SP 做什麼：摘要 (取前 500 字)
-    LEFT(m.definition, 500)             AS [SP Definition Preview],
+    -- SP 做什麼：摘要 (跳過開頭註解區塊，從 CREATE 開始取 500 字)
+    SUBSTRING(
+        m.definition,
+        ISNULL(NULLIF(PATINDEX('%CREATE%PROC%', m.definition), 0), 1),
+        500
+    )                                   AS [SP Definition Preview],
     -- 超連結至 Sheet 4B 的完整定義
     '=HYPERLINK("#gid=' + @Sheet4BGid + '","查看完整定義")'
                                         AS [Full Definition Link]
@@ -402,7 +406,12 @@ SELECT
         WHEN m.definition LIKE '%TRUNCATE%'+ d.referenced_entity_name + '%' THEN 'TRUNCATE'
         ELSE 'REFERENCE'
     END                                 AS [Operation Type],
-    LEFT(m.definition, 500)             AS [SP Definition Preview]
+    -- 跳過開頭註解區塊，從 CREATE 開始取 500 字
+    SUBSTRING(
+        m.definition,
+        ISNULL(NULLIF(PATINDEX('%CREATE%PROC%', m.definition), 0), 1),
+        500
+    )                                   AS [SP Definition Preview]
 FROM sys.sql_expression_dependencies d
 INNER JOIN sys.objects o ON d.referencing_id = o.object_id
 LEFT JOIN sys.sql_modules m ON d.referencing_id = m.object_id
