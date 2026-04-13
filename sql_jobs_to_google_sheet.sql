@@ -370,7 +370,19 @@ SELECT
     p.create_date                       AS [SP Created],
     p.modify_date                       AS [SP Last Modified],
     LEN(m.definition)                   AS [SP Definition Length],
-    m.definition                        AS [SP Full Definition]
+    -- 跳過開頭的註解區塊，從 CREATE PROCEDURE 那行開始顯示
+    SUBSTRING(
+        m.definition,
+        CASE
+            WHEN PATINDEX('CREATE%PROC%', m.definition) = 1 THEN 1
+            WHEN PATINDEX('%' + CHAR(13) + CHAR(10) + 'CREATE%PROC%', m.definition) > 0
+                THEN PATINDEX('%' + CHAR(13) + CHAR(10) + 'CREATE%PROC%', m.definition) + 2
+            WHEN PATINDEX('%' + CHAR(10) + 'CREATE%PROC%', m.definition) > 0
+                THEN PATINDEX('%' + CHAR(10) + 'CREATE%PROC%', m.definition) + 1
+            ELSE 1
+        END,
+        LEN(m.definition)               -- 取到結尾，保持完整定義
+    )                                   AS [SP Full Definition]
 FROM sys.procedures p
 INNER JOIN sys.sql_modules m ON p.object_id = m.object_id
 WHERE p.name IN (
