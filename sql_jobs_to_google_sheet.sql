@@ -302,9 +302,13 @@ ORDER BY p.name;
 
 
 -- =====================================================================
--- Sheet 4：Job 使用的 Stored Procedures (SP 總表 + 定義)
+-- Sheet 4：Job 使用的 Stored Procedures (摘要表)
 -- 需在 Job 使用的資料庫下執行 (例如 USE cmd_data)
+--
+-- ★ 使用前請先設定 Sheet 4B 的 gid (詳細 SP 定義在 Sheet 4B)
 -- =====================================================================
+DECLARE @Sheet4BGid VARCHAR(20) = '0';   -- ← 改這裡：填入 Sheet 4B 的 gid
+
 SELECT
     DB_NAME()                           AS [Current Database],
     j.name                              AS [Job Name],
@@ -324,8 +328,9 @@ SELECT
     LEN(m.definition)                   AS [SP Definition Length],
     -- SP 做什麼：摘要 (取前 500 字)
     LEFT(m.definition, 500)             AS [SP Definition Preview],
-    -- SP 完整內容 (如果需要完整定義可展開此欄)
-    m.definition                        AS [SP Full Definition]
+    -- 超連結至 Sheet 4B 的完整定義
+    '=HYPERLINK("#gid=' + @Sheet4BGid + '","查看完整定義")'
+                                        AS [Full Definition Link]
 FROM msdb.dbo.sysjobs j
 INNER JOIN msdb.dbo.sysjobsteps js ON j.job_id = js.job_id
 LEFT JOIN sys.procedures p
@@ -340,6 +345,36 @@ LEFT JOIN sys.sql_modules m ON p.object_id = m.object_id
 WHERE js.command LIKE '%EXEC %'
   AND js.subsystem = 'TSQL'
 ORDER BY j.name, js.step_id;
+
+
+-- =====================================================================
+-- Sheet 4B：SP 完整定義 (每個 SP 一行，僅供 Sheet 4 超連結查閱)
+-- 需在 Job 使用的資料庫下執行 (例如 USE cmd_data)
+-- =====================================================================
+SELECT
+    DB_NAME()                           AS [Current Database],
+    p.name                              AS [SP Name],
+    p.create_date                       AS [SP Created],
+    p.modify_date                       AS [SP Last Modified],
+    LEN(m.definition)                   AS [SP Definition Length],
+    m.definition                        AS [SP Full Definition]
+FROM sys.procedures p
+INNER JOIN sys.sql_modules m ON p.object_id = m.object_id
+WHERE p.name IN (
+    -- 只撈 Job Step 裡有 EXEC 到的 SP
+    SELECT DISTINCT
+        LTRIM(RTRIM(
+            SUBSTRING(
+                SUBSTRING(js.command, CHARINDEX('EXEC ', js.command) + 5, 200),
+                1,
+                CHARINDEX(' ', SUBSTRING(js.command, CHARINDEX('EXEC ', js.command) + 5, 200) + ' ') - 1
+            )
+        ))
+    FROM msdb.dbo.sysjobsteps js
+    WHERE js.command LIKE '%EXEC %'
+      AND js.subsystem = 'TSQL'
+)
+ORDER BY p.name;
 
 
 -- =====================================================================

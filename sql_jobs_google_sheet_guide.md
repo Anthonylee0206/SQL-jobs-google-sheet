@@ -1,13 +1,14 @@
 # SQL Server Jobs - Google Sheet 整理指南
 
-## 工作表結構 (共 12 個 Sheet)
+## 工作表結構 (共 12 個主 Sheet + 1 個明細 Sheet)
 
 | Sheet | 名稱 | 用途 | 資料來源 |
 |-------|------|------|---------|
 | 1 | **Job 總覽** | Job 名稱、排程、啟用狀態 | msdb 系統表 |
 | 2 | **步驟明細** | 每個 Job 的 Step 內容與命令 | msdb.sysjobsteps |
 | 3 | **關聯資料表** | 3A: Step 引用的表 / 3B: SP 關聯表**摘要** (每 SP 一行，含超連結至 Sheet 5) | command 解析 + sys.sql_expression_dependencies |
-| 4 | **使用的 SP** | EXEC 呼叫的 SP 名稱與定義 | sys.procedures + sys.sql_modules |
+| 4 | **使用的 SP** | Job → SP 對應表 + Definition Preview，附超連結至 Sheet 4B | sys.procedures + sys.sql_modules |
+| **4B** | **SP 完整定義** | 每個 SP 一行，存放 Full Definition (僅供 Sheet 4 超連結查閱) | sys.sql_modules |
 | 5 | **SP 相依性明細** | SP 讀寫了哪些表、操作類型 (Sheet 3B 的完整明細) | sys.sql_expression_dependencies |
 | 6 | **資源使用量 (Job)** | 30 天執行次數、成功率、平均/最大時長 | msdb.sysjobhistory |
 | 7 | **資源使用量 (Step)** | Step 層級耗時、失敗次數、錯誤訊息 | msdb.sysjobhistory |
@@ -27,9 +28,10 @@
 ### 2. 在各資料庫下執行
 | Sheet | 需切換到 |
 |-------|---------|
-| 3B (SP 相依性) | `USE cmd_data` |
-| 4 (SP 定義) | `USE cmd_data` |
-| 5 (SP 相依性) | `USE cmd_data` |
+| 3B (SP 相依性摘要) | 在每個有 Job 呼叫 SP 的 DB 各執行一次 |
+| 4 (SP 摘要) | 在每個有 Job 呼叫 SP 的 DB 各執行一次 |
+| 4B (SP 完整定義) | 在每個有 Job 呼叫 SP 的 DB 各執行一次 |
+| 5 (SP 相依性明細) | 在每個有 Job 呼叫 SP 的 DB 各執行一次 |
 | 8 (I/O) | 任意 (查所有 DB) |
 | 10 (表大小) | 分別在 `cmd_data` / `cmd_data_log` / `cmd_data_archive` 各執行一次 |
 | 12 (設定表) | `USE cmd_data` |
@@ -46,6 +48,17 @@
    ```
 3. 重新執行查詢 → Ctrl+A → Ctrl+C → 貼到 Sheet 3B
 4. Detail Link 欄位會直接是可用的超連結，點擊跳到 Sheet 5
+
+### 5. 設定 Sheet 4 → Sheet 4B 超連結
+方式跟上面一樣：
+1. 先建好 Sheet 4B（執行 Sheet 4B 查詢並貼到 Google Sheet）
+2. 複製 Sheet 4B 的 gid
+3. 修改 Sheet 4 查詢開頭的 `@Sheet4BGid` 變數
+   ```sql
+   DECLARE @Sheet4BGid VARCHAR(20) = '9876543210';  -- 改這裡
+   ```
+4. 執行 Sheet 4 → 貼到 Google Sheet
+5. Full Definition Link 欄位點擊就會跳到 Sheet 4B 的完整 SP 內容
 
 ---
 

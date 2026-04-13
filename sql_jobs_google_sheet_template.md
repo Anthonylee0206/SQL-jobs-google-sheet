@@ -47,13 +47,25 @@
 
 ---
 
-## 工作表 4：使用的 SP
+## 工作表 4：使用的 SP (摘要)
 ```
-| Current Database | Job Name | Step # | Step Name | Step Database | SP Name | SP Created | SP Last Modified | SP Definition Length | SP Definition Preview | SP Full Definition |
-|------------------|----------|--------|-----------|---------------|---------|------------|------------------|---------------------|-----------------------|-------------------|
-| cmd_data | JOBS_move_log | 2 | move_log | cmd_data | sp_move_data | 2025-01-15 | 2026-03-26 | 487 | CREATE PROC [dbo].[sp_move_data]... | (完整定義) |
+| Current Database | Job Name | Step # | Step Name | Step Database | SP Name | SP Created | SP Last Modified | SP Definition Length | SP Definition Preview | Full Definition Link |
+|------------------|----------|--------|-----------|---------------|---------|------------|------------------|---------------------|-----------------------|----------------------|
+| cmd_data | JOBS_move_log | 2 | move_log | cmd_data | sp_move_data | 2025-01-15 | 2026-03-26 | 487 | CREATE PROC [dbo].[sp_move_data]... | =HYPERLINK("#gid=...","查看完整定義") |
 ```
-> 在 cmd_data / cmd_data_log / cmd_data_archive 各跑一次，結果全部接在一起，靠 Current Database 欄位區分
+> 在每個有 Job 呼叫 SP 的 DB 各跑一次，結果接在一起，靠 Current Database 欄位區分。
+> 完整的 SP 內容存放在 Sheet 4B，透過 Full Definition Link 欄位的超連結查看。
+
+---
+
+## 工作表 4B：SP 完整定義 (供 Sheet 4 超連結查閱)
+```
+| Current Database | SP Name | SP Created | SP Last Modified | SP Definition Length | SP Full Definition |
+|------------------|---------|------------|------------------|---------------------|-------------------|
+| cmd_data | sp_move_data | 2025-01-15 | 2026-03-26 | 11487 | CREATE PROC [dbo].[sp_move_data] ... (完整定義) |
+| cmd_data | sp_archive | 2025-02-10 | 2026-03-20 | 8421 | CREATE PROC [dbo].[sp_archive] ... |
+```
+> 每個 SP 一行，每個 DB 各跑一次接在一起。這張表單獨存放完整 SP 內容，避免把 Sheet 4 撐大。
 
 ---
 
